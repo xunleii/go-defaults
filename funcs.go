@@ -1,11 +1,12 @@
 package defaults
 
 import (
+	"reflect"
 	"strconv"
 	"time"
 )
 
-func boolFiller(field *FieldData) {
+func defaultBool(field *FieldData) {
 	value := false
 	if field.TagValue == "true" {
 		value = true
@@ -13,28 +14,25 @@ func boolFiller(field *FieldData) {
 	field.Value.SetBool(value)
 }
 
-func stringFiller(field *FieldData) {
-	field.Value.SetString(field.TagValue)
-}
-
-func intFiller(field *FieldData) {
+func defaultInt(field *FieldData) {
 	value, _ := strconv.ParseInt(field.TagValue, 10, 64)
 	field.Value.SetInt(value)
 }
 
-func uintFiller(field *FieldData) {
+func defaultUint(field *FieldData) {
 	value, _ := strconv.ParseUint(field.TagValue, 10, 64)
 	field.Value.SetUint(value)
 }
 
-func floatFiller(field *FieldData) {
+func defaultFloat(field *FieldData) {
 	value, _ := strconv.ParseFloat(field.TagValue, 64)
 	field.Value.SetFloat(value)
 }
 
-func durationFiller(field *FieldData) {
+func defaultDuration(field *FieldData) {
 	value, _ := time.ParseDuration(field.TagValue)
 	field.Value.SetInt(int64(value))
 }
 
-func ignoreFiller(*FieldData) {}
+func defaultString(field *FieldData) { field.Value.SetString(field.TagValue) }
+func defaultBytes(field *FieldData)  { field.Value.Set(reflect.ValueOf([]byte(field.TagValue))) }

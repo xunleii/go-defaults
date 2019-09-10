@@ -1,6 +1,8 @@
 package defaults_test
 
 import (
+	"encoding/json"
+	"reflect"
 	"testing"
 	"time"
 
@@ -10,7 +12,7 @@ import (
 )
 
 type Parent struct {
-	Children []Child
+	Children []Child `default:"[{\"name\": \"alice\", \"age\": 10},{\"name\": \"bob\", \"age\": 2}]"`
 }
 
 type Child struct {
@@ -31,14 +33,15 @@ type ExampleBasic struct {
 	UInteger32 uint32  `default:"132"`
 	UInteger64 uint64  `default:"164"`
 	String     string  `default:"foo"`
+	Bytes      []byte  `default:"bar"`
 	Float32    float32 `default:"3.2"`
 	Float64    float64 `default:"6.4"`
 	Struct     struct {
 		Bool    bool `default:"true"`
 		Integer int  `default:"33"`
 	}
-	Duration time.Duration `default:"1s"`
 	Children []Child
+	Duration time.Duration `default:"1s"`
 }
 
 type ExampleNested struct {
@@ -46,36 +49,55 @@ type ExampleNested struct {
 }
 
 func TestSetDefaultsBasic(t *testing.T) {
-	foo := &ExampleBasic{}
-	defaults.SetDefaults(foo)
+	basic := &ExampleBasic{}
+	defaults.SetDefaults(basic)
 
-	assertTypes(t, foo)
+	assertTypes(t, basic)
 }
 
 func TestSetDefaultsNested(t *testing.T) {
-	foo := &ExampleNested{}
-	defaults.SetDefaults(foo)
+	nested := &ExampleNested{}
+	defaults.SetDefaults(nested)
 
-	assertTypes(t, &foo.Struct)
+	assertTypes(t, &nested.Struct)
 }
 
 func TestSetDefaultsWithValues(t *testing.T) {
-	foo := &ExampleBasic{
+	basic := &ExampleBasic{
 		Integer:  55,
 		UInteger: 22,
 		Float32:  9.9,
 		String:   "bar",
+		Bytes:    []byte("foo"),
 		Children: []Child{{Name: "alice"}, {Name: "bob", Age: 2}},
 	}
 
-	defaults.SetDefaults(foo)
+	defaults.SetDefaults(basic)
 
-	assert.Equal(t, 55, foo.Integer)
-	assert.Equal(t, uint(22), foo.UInteger)
-	assert.Equal(t, float32(9.9), foo.Float32)
-	assert.Equal(t, "bar", foo.String)
-	assert.Equal(t, 10, foo.Children[0].Age)
-	assert.Equal(t, 2, foo.Children[1].Age)
+	assert.Equal(t, 55, basic.Integer)
+	assert.Equal(t, uint(22), basic.UInteger)
+	assert.Equal(t, float32(9.9), basic.Float32)
+	assert.Equal(t, "bar", basic.String)
+	assert.Equal(t, "foo", string(basic.Bytes))
+	assert.Equal(t, 10, basic.Children[0].Age)
+	assert.Equal(t, 2, basic.Children[1].Age)
+}
+
+func TestRegisterCustomDefault(t *testing.T) {
+	defaults.RegisterCustomDefault(reflect.TypeOf([]Child{}), func(field *defaults.FieldData) {
+		var v []Child
+		_ = json.Unmarshal([]byte(field.TagValue), &v)
+		field.Value.Set(reflect.ValueOf(v))
+	})
+
+	parent := &Parent{}
+	defaults.SetDefaults(parent)
+
+	assert.Len(t, parent.Children, 2)
+	assert.Equal(t, "alice", parent.Children[0].Name)
+	assert.Equal(t, 10, parent.Children[0].Age)
+	assert.Equal(t, "bob", parent.Children[1].Name)
+	assert.Equal(t, 2, parent.Children[1].Age)
 }
 
 func assertTypes(t *testing.T, foo *ExampleBasic) {
@@ -91,10 +113,11 @@ func assertTypes(t *testing.T, foo *ExampleBasic) {
 	assert.Equal(t, uint32(132), foo.UInteger32)
 	assert.Equal(t, uint64(164), foo.UInteger64)
 	assert.Equal(t, "foo", foo.String)
+	assert.Equal(t, "bar", string(foo.Bytes))
 	assert.Equal(t, float32(3.2), foo.Float32)
 	assert.Equal(t, 6.4, foo.Float64)
-	assert.Equal(t, true, foo.Struct.Bool)     // not work
-	assert.Equal(t, time.Second, foo.Duration) // not work
+	assert.Equal(t, true, foo.Struct.Bool)
+	assert.Equal(t, time.Second, foo.Duration)
 	assert.Nil(t, foo.Children)
 }
 

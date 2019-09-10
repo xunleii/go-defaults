@@ -21,9 +21,7 @@ func SetDefaults(v interface{}) {
 	}
 }
 
-func AddCustomDefault(p reflect.Type, fnc Func) {
-	defaultWithType[p.String()] = fnc
-}
+func RegisterCustomDefault(p reflect.Type, fnc Func) { defaultWithType[p.String()] = fnc }
 
 func fieldsFromValue(value reflect.Value) []*FieldData {
 	vtype := value.Type()
@@ -60,6 +58,15 @@ func fieldsFromValue(value reflect.Value) []*FieldData {
 
 			switch subValue.Kind() {
 			case reflect.Ptr, reflect.Array, reflect.Slice, reflect.Map, reflect.Struct:
+				_, exists := defaultWithType[subValue.Type().String()]
+				if exists {
+					fields = append(fields, &FieldData{
+						Value:    subValue,
+						TagValue: tag,
+					})
+					continue
+				}
+
 				subFields := fieldsFromValue(subValue)
 				if subFields != nil {
 					fields = append(fields, subFields...)
@@ -107,43 +114,37 @@ func isEmpty(field *FieldData) bool {
 		return field.Value.Uint() == 0
 	case reflect.Float32, reflect.Float64:
 		return field.Value.Float() == .0
+	case reflect.Complex64, reflect.Complex128:
+		return field.Value.Complex() == 0i
 	case reflect.String:
 		return field.Value.String() == ""
+	case reflect.Array, reflect.Slice, reflect.Map:
+		return field.Value.Len() == 0
+	case reflect.Chan, reflect.Interface, reflect.Ptr, reflect.Struct, reflect.Func:
+		return field.Value.IsNil()
 	default:
 		return false
 	}
 }
 
 var defaultWithKind = map[reflect.Kind]Func{
-	reflect.Invalid:       ignoreFiller,
-	reflect.Bool:          boolFiller,
-	reflect.Int:           intFiller,
-	reflect.Int8:          intFiller,
-	reflect.Int16:         intFiller,
-	reflect.Int32:         intFiller,
-	reflect.Int64:         intFiller,
-	reflect.Uint:          uintFiller,
-	reflect.Uint8:         uintFiller,
-	reflect.Uint16:        uintFiller,
-	reflect.Uint32:        uintFiller,
-	reflect.Uint64:        uintFiller,
-	reflect.Uintptr:       ignoreFiller,
-	reflect.Float32:       floatFiller,
-	reflect.Float64:       floatFiller,
-	reflect.Complex64:     ignoreFiller,
-	reflect.Complex128:    ignoreFiller,
-	reflect.Array:         ignoreFiller,
-	reflect.Chan:          ignoreFiller,
-	reflect.Func:          ignoreFiller,
-	reflect.Interface:     ignoreFiller,
-	reflect.Map:           ignoreFiller,
-	reflect.Ptr:           ignoreFiller,
-	reflect.Slice:         ignoreFiller,
-	reflect.String:        stringFiller,
-	reflect.Struct:        ignoreFiller,
-	reflect.UnsafePointer: ignoreFiller,
+	reflect.Bool:    defaultBool,
+	reflect.Int:     defaultInt,
+	reflect.Int8:    defaultInt,
+	reflect.Int16:   defaultInt,
+	reflect.Int32:   defaultInt,
+	reflect.Int64:   defaultInt,
+	reflect.Uint:    defaultUint,
+	reflect.Uint8:   defaultUint,
+	reflect.Uint16:  defaultUint,
+	reflect.Uint32:  defaultUint,
+	reflect.Uint64:  defaultUint,
+	reflect.Float32: defaultFloat,
+	reflect.Float64: defaultFloat,
+	reflect.String:  defaultString,
 }
-// todo: check custom structure like time.Time
+
 var defaultWithType = map[string]Func{
-	"time.Duration": durationFiller,
+	"time.Duration": defaultDuration,
+	"[]uint8":       defaultBytes,
 }
