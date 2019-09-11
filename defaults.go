@@ -4,12 +4,27 @@ import (
 	"reflect"
 )
 
+// Func is a function that fill any struct field from the tag value.
 type Func func(field *FieldData)
+
+// FieldData contains the value and the tag value of a struct field.
 type FieldData struct {
 	Value    reflect.Value
 	TagValue string
 }
 
+// SetDefaults applies the default values to the struct object, the struct type must have
+// the StructTag with name "default" and the directed value.
+//
+// Usage
+//     type ExampleBasic struct {
+//         Foo bool   `default:"true"`
+//         Bar string `default:"33"`
+//         Qux int8
+//     }
+//
+//      foo := &ExampleBasic{}
+//      SetDefaults(foo)
 func SetDefaults(v interface{}) {
 	value := reflect.ValueOf(v).Elem()
 	fields := fieldsFromValue(value)
@@ -21,6 +36,8 @@ func SetDefaults(v interface{}) {
 	}
 }
 
+// RegisterCustomDefault bind a custom Func with a specific type allowing to set default value
+// for user defined type.
 func RegisterCustomDefault(p reflect.Type, fnc Func) { defaultWithType[p.String()] = fnc }
 
 func fieldsFromValue(value reflect.Value) []*FieldData {
