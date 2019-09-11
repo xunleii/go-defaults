@@ -5,7 +5,7 @@ go-defaults
 [![GitHub release](https://img.shields.io/github/release/xunleii/go-defaults.svg)](https://github.com/xunleii/go-defaults/releases)
 
 
-*(Mostly inspired by [github.com/mcuadros/go-defaults](https://github.com/mcuadros/go-defaults))*
+*(Mostly inspired by [github.com/mcuadros/go-defaults](https://github.com/mcuadros/go-defaults))*  
 Enabling stuctures with defaults values using [struct tags](http://golang.org/pkg/reflect/#StructTag).
 
 Installation
