@@ -120,10 +120,3 @@ func assertTypes(t *testing.T, foo *ExampleBasic) {
 	assert.Equal(t, time.Second, foo.Duration)
 	assert.Nil(t, foo.Children)
 }
-
-func BenchmarkLogic(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		foo := &ExampleBasic{}
-		defaults.SetDefaults(foo)
-	}
-}

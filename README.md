@@ -1,9 +1,11 @@
 go-defaults
 ==============================
-[![GoDoc](http://godoc.org/github.com/xunleii/go-defaults?status.png)](http://godoc.org/github.com/xunleii/go-defaults) [![GitHub release](https://img.shields.io/github/release/xunleii/go-defaults.svg)](https://github.com/xunleii/go-defaults/releases)
+[![Actions Status](https://github.com/xunleii/go-defaults/workflows/github-ci/badge.svg)](https://github.com/xunleii/go-defaults/actions)
+[![GoDoc](http://godoc.org/github.com/xunleii/go-defaults?status.png)](http://godoc.org/github.com/xunleii/go-defaults)
+[![GitHub release](https://img.shields.io/github/release/xunleii/go-defaults.svg)](https://github.com/xunleii/go-defaults/releases)
 
 
-*(Mostly inspired by [github.com/mcuadros/go-defaults](https://github.com/mcuadros/go-defaults))*  
+*(Mostly inspired by [github.com/mcuadros/go-defaults](https://github.com/mcuadros/go-defaults))*
 Enabling stuctures with defaults values using [struct tags](http://golang.org/pkg/reflect/#StructTag).
 
 Installation
@@ -49,7 +51,7 @@ fmt.Println(test.Qux) //Prints:
 fmt.Println(test.Dur) //Prints: 1m0s
 ```
 
-Caveats (also based on [github.com/mcuadros/go-defaults](https://github.com/mcuadros/go-defaults))
+Caveats *(also based on [github.com/mcuadros/go-defaults](https://github.com/mcuadros/go-defaults))*
 --------------------------------------------------------------------------------------------------------
 
 At the moment, the way the default filler checks whether it should fill a struct field or not is by comparing the current field value with the corresponding zero value of that type. This has a subtle implication: the zero value set explicitly by you will get overriden by default value during `SetDefaults()` call. So if you need to set the field to container zero value, you need to set it explicitly AFTER setting the defaults.
